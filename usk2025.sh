@@ -44,8 +44,11 @@ echo "Install BIND9 dan DNS utilities"
 echo "----------------------------------------------------"
 apt install bind9 dnsutils -y
 
-# Konfigurasi db.172
-cat > /etc/bind/db.172 <<EOF
+DO1=$(echo "$DOMAIN1" | cut -d '.' -f 1)
+DO2=$(echo "$DOMAIN2" | cut -d '.' -f 1)
+
+# Konfigurasi db.IP
+cat > /etc/bind/db.$i1 <<EOF
 \$TTL    604800
 ;
 ; BIND reverse data file for local loopback interface
@@ -68,8 +71,8 @@ $i4       IN      PTR     voip.$DOMAIN2.
 $i4       IN      PTR     cctv.$DOMAIN2.
 EOF
 
-# Konfigurasi db.tkj
-cat > /etc/bind/db.tkj <<EOF
+# Konfigurasi db.domain 1
+cat > /etc/bind/db.$DO1 <<EOF
 \$TTL    604800
 ;
 ; BIND data file for local loopback interface
@@ -88,8 +91,8 @@ mail    IN      A       $IPADDR
 $DOMAIN1. IN      MX      10      mail.$DOMAIN1.
 EOF
 
-# Konfigurasi db.usk
-cat > /etc/bind/db.usk <<EOF
+# Konfigurasi db.domain 2
+cat > /etc/bind/db.$DO2 <<EOF
 \$TTL    604800
 ;
 ; BIND data file for local loopback interface
@@ -114,17 +117,17 @@ EOF
 cat > /etc/bind/named.conf.local <<EOF
 zone "$DOMAIN1" {
         type master;
-        file "/etc/bind/db.tkj";
+        file "/etc/bind/db.$DO1";
 };
 
 zone "$DOMAIN2" {
         type master;
-        file "/etc/bind/db.usk";
+        file "/etc/bind/db.$DO2";
 };
 
 zone "$REVERSED_IP.in-addr.arpa" {
         type master;
-        file "/etc/bind/db.172";
+        file "/etc/bind/db.$i1";
 };
 EOF
 
@@ -225,62 +228,62 @@ mysql -u root -pantix -e "CREATE DATABASE $DB2;"
 wget https://wordpress.org/latest.zip
 unzip latest.zip
 chmod -R 777 wordpress
-mkdir /var/www/tkj
-mv wordpress/ /var/www/tkj/
+mkdir /var/www/$DO1
+mv wordpress/ /var/www/$DO1/
 
 # Download dan Install WordPress untuk domain 2
 unzip latest.zip
 chmod -R 777 wordpress
-mkdir /var/www/usk
-mv wordpress/ /var/www/usk/
+mkdir /var/www/$DO2
+mv wordpress/ /var/www/$DO2/
 
 # Konfigurasi Apache untuk domain 1
-cat > /etc/apache2/sites-available/wwwtkj.conf <<EOF
+cat > /etc/apache2/sites-available/www$DO1.conf <<EOF
 <VirtualHost *:80>
     ServerName www.$DOMAIN1
     ServerAdmin webmaster@localhost
-    DocumentRoot /var/www/tkj/wordpress
+    DocumentRoot /var/www/$DO1/wordpress
     ErrorLog \${APACHE_LOG_DIR}/error.log
     CustomLog \${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
 EOF
 
-cat > /etc/apache2/sites-available/tkj.conf <<EOF
+cat > /etc/apache2/sites-available/$DO1.conf <<EOF
 <VirtualHost *:80>
     ServerName $DOMAIN1
     ServerAdmin webmaster@localhost
-    DocumentRoot /var/www/tkj/wordpress
+    DocumentRoot /var/www/$DO1/wordpress
     ErrorLog \${APACHE_LOG_DIR}/error.log
     CustomLog \${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
 EOF
 
 # Konfigurasi Apache untuk domain 2
-cat > /etc/apache2/sites-available/wwwusk.conf <<EOF
+cat > /etc/apache2/sites-available/www$DO2.conf <<EOF
 <VirtualHost *:80>
     ServerName www.$DOMAIN2
     ServerAdmin webmaster@localhost
-    DocumentRoot /var/www/usk/wordpress
+    DocumentRoot /var/www/$DO2/wordpress
     ErrorLog \${APACHE_LOG_DIR}/error.log
     CustomLog \${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
 EOF
 
-cat > /etc/apache2/sites-available/usk.conf <<EOF
+cat > /etc/apache2/sites-available/$DO2.conf <<EOF
 <VirtualHost *:80>
     ServerName $DOMAIN2
     ServerAdmin webmaster@localhost
-    DocumentRoot /var/www/usk/wordpress
+    DocumentRoot /var/www/$DO2/wordpress
     ErrorLog \${APACHE_LOG_DIR}/error.log
     CustomLog \${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
 EOF
 
 # Aktifkan konfigurasi situs
-a2ensite wwwtkj.conf
-a2ensite tkj.conf
-a2ensite wwwusk.conf
-a2ensite usk.conf
+a2ensite www$DO1.conf
+a2ensite $DO1.conf
+a2ensite www$DO2.conf
+a2ensite $DO2.conf
 
 # Nonaktifkan situs default
 a2dissite 000-default.conf
@@ -479,7 +482,7 @@ sed -i "s/\$config\['product_name'\] = 'Roundcube Webmail';/\$config\['product_n
 DEBIAN_FRONTEND=noninteractive dpkg-reconfigure roundcube-core
 
 # Konfigurasi Apache untuk Mail Server
-cat > /etc/apache2/sites-available/mailtkj.conf <<EOF
+cat > /etc/apache2/sites-available/mail$DO1.conf <<EOF
 <VirtualHost *:80>
     ServerName mail.$DOMAIN1
     ServerAdmin webmaster@localhost
@@ -490,7 +493,7 @@ cat > /etc/apache2/sites-available/mailtkj.conf <<EOF
 EOF
 
 # Aktifkan konfigurasi situs
-a2ensite mailtkj.conf
+a2ensite mail$DO1.conf
 
 # Restart dan cek status Apache
 echo "----------------------------------------------------"
@@ -698,9 +701,9 @@ sleep 2
 snmpwalk -v2c -c $COSTRING $IPADDR
 
 # Konfigurasi Apache untuk Cacti Server
-cat > /etc/apache2/sites-available/cactiusk.conf <<EOF
+cat > /etc/apache2/sites-available/cacti$DO2.conf <<EOF
 <VirtualHost *:80>
-    ServerName cacti.$DOMAIN1
+    ServerName cacti.$DOMAIN2
     ServerAdmin webmaster@localhost
     DocumentRoot /var/www/html
     ErrorLog \${APACHE_LOG_DIR}/error.log
@@ -709,7 +712,7 @@ cat > /etc/apache2/sites-available/cactiusk.conf <<EOF
 EOF
 
 # Aktifkan konfigurasi situs
-a2ensite cactiusk.conf
+a2ensite cacti$DO2.conf
 
 # Restart dan cek status Apache
 echo "----------------------------------------------------"
