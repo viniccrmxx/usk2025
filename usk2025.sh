@@ -729,7 +729,7 @@ echo -e "\e[1;31mhttp://mail.$DOMAIN1 untuk mengakses Roundcube Webmail\e[0m"
 echo -e "\e[1;32mUser mail 1: $USER1_MAIL dengan Password $USER1_PASS dan User mail 2: $USER2_MAIL dengan Password $USER2_PASS\e[0m"
 echo "===================================================="
 echo " Cacti terinstall di folder /var/www/html "
-echo " Dilahkan lanjutkan login cacti http://"`hostname -I | awk '{print $1}'`
+echo " Silahkan lanjutkan login cacti http://"`hostname -I | awk '{print $1}'`
 echo " Atau langsung saja melalui domain http://cacti.$DOMAIN2 "
 echo " Username: admin password: admin "
 echo " Community String: $COSTRING "
