@@ -18,7 +18,7 @@ echo "----------------------------------------------------"
 echo " IP ADDRESS dan NETWORK"
 echo "----------------------------------------------------"
 read -p "Masukkan IP Address (contoh: 172.16.33.133): " IPADDR
-read -p "Masukkan Network (contoh: 172.16.33.128/25) " NETWORK
+read -p "Masukkan Network (contoh: 172.16.33.128/25): " NETWORK
 
 # Membalikkan IP
 IFS='.' read -r i1 i2 i3 i4 <<< "$IPADDR"
