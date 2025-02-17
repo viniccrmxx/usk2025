@@ -15,19 +15,13 @@ read -p "Masukkan Domain 2 - usk[NIS] (contoh: usk13930.net): " DOMAIN2
 # Input ip address dan subnet mask
 sleep 2
 echo "----------------------------------------------------"
-echo " IP ADDRESS dan SUBNET MASK"
+echo " IP ADDRESS dan NETWORK"
 echo "----------------------------------------------------"
 read -p "Masukkan IP Address (contoh: 172.16.33.133): " IPADDR
-read -p "Masukkan Subnet Mask (contoh: 255.255.255.128): " SUBNET
+read -p "Masukkan Network (contoh: 172.16.33.128/25) " NETWORK
 
-# Hitung Network Address
+# Membalikkan IP
 IFS='.' read -r i1 i2 i3 i4 <<< "$IPADDR"
-IFS='.' read -r s1 s2 s3 s4 <<< "$SUBNET"
-n1=$((i1 & s1))
-n2=$((i2 & s2))
-n3=$((i3 & s3))
-n4=$((i4 & s4))
-NETWORK="$n1.$n2.$n3.$n4/$(( (s1 * 16777216 + s2 * 65536 + s3 * 256 + s4) == 4294967040 ? 24 : (s1 * 16777216 + s2 * 65536 + s3 * 256 + s4) == 4294967168 ? 25 : 0 ))"
 REVERSED_IP="$i3.$i2.$i1"
 
 # Update package lists
